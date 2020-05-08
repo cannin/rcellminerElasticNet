@@ -6,17 +6,12 @@
 #'  assignments).
 #' @param cvFoldIds An nObs x nReplicates matrix with integer fold identifiers 
 #'  along the columns.
-#' @param minFeatureResponseAbsCor Minimum absolute correlation between feature
-#'  and response (used to filter rows of featureMat).
 #' @param featureMat p x n matrix with input feature vectors along rows.
 #' @param responseVec n-dimensional response vector to be predicted using a sparse
 #'   linear combination of input feature vectors specified in featureMat.
 #' @param standardize Logical flag for feature variable standardization (across
 #'   observations), passed in to glmnet functions (glmnet documentation: if
 #'   variables are already in the same units, standardization may not be necessary).
-#' @param standardizeY Logical flag for response variable standardization across
-#' observations.
-#' @param fitIntercept Logical flag indicating whether intercept term should be fit.
 #' @param alphaVals a vector of alpha values to be optimized over  
 #' @param lambdaVals a vector of lambda values to be optimized over
 #' @param nFoldsForParamSelection the number of cross-validation folds to perform
@@ -37,6 +32,9 @@
 #' @param id a optional string identifier for the EN run
 #' @param useModelYIntercept A logical value indicating if the model intercept term
 #'  should be used for prediction of response values held out in each CV fold.
+#' @param nCvRepeats The number of cross-validation repeats (with different fold
+#'  assignments).
+#' @param keepEnResults Keep individual elastic net run feature weight matricies
 #' 
 #' @return A list with the following elements
 #' \itemize{
@@ -68,10 +66,9 @@
 #' @concept rcellminerElasticNet
 #' @export
 #' 
+#' @importFrom stats cor.test sd 
 cvElasticNet <- function(nFolds=10, nRepeats=10, cvFoldIds=NULL,
-                        minFeatureResponseAbsCor=0,
-                        featureMat, responseVec,
-                        standardize=TRUE, standardizeY=FALSE, fitIntercept=TRUE,
+                        featureMat, responseVec, standardize=TRUE,
                         alphaVals=seq(0.2, 1, length=9), lambdaVals=NULL, 
                         nFoldsForParamSelection=10, nCvRepeats=10,
                         nTrainingRuns=200, minFeatureFrequencyPctl=0.95,
@@ -79,10 +76,6 @@ cvElasticNet <- function(nFolds=10, nRepeats=10, cvFoldIds=NULL,
                         useOneStdErrRule=FALSE, id="", 
                         keepEnResults=FALSE, useModelYIntercept=FALSE,
                         verbose=TRUE) {
-  if (minFeatureResponseAbsCor > 0){
-    featureMat <- selectCorrelatedRows(Y=responseVec, X=featureMat, 
-                                       corThreshold = minFeatureResponseAbsCor)
-  }
   
   if (is.null(cvFoldIds)){
     cvFoldIds <- getCvFoldIds(nObs=ncol(featureMat), nFolds=nFolds, nRepeats=nRepeats)
@@ -113,18 +106,12 @@ cvElasticNet <- function(nFolds=10, nRepeats=10, cvFoldIds=NULL,
         writeLines(as.character(iTest))
         writeLines("Random Seed:")
         writeLines(as.character(.Random.seed))
-        if (require(pryr)){
-          writeLines(paste0("cvElasticNet() allEnResults: ", 
-                     pryr::object_size(allEnResults) / (10^6), " MB."))
-        }
       }
       
       runTimeInfo <- system.time({
       enResults <- elasticNet(featureMat=featureMat[, iTrain, drop=FALSE], 
                               responseVec=responseVec[iTrain],
                               standardize=standardize, 
-                              standardizeY=standardizeY, 
-                              fitIntercept=fitIntercept,
                               alphaVals=alphaVals, 
                               lambdaVals=lambdaVals, 
                               nFoldsForParamSelection=nFoldsForParamSelection, 

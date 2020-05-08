@@ -5,10 +5,17 @@
 \title{Select the optimal elastic net parameters based on cross-validation
 error estimates.}
 \usage{
-selectElasticNetParams(featureMat, responseVec, standardize = TRUE,
-  standardizeY = FALSE, fitIntercept = TRUE, alphaVals = seq(0.2, 1,
-  length = 9), lambdaVals = NULL, nFolds = 10, nRepeats = 10,
-  useLambdaMin = TRUE, verbose = TRUE)
+selectElasticNetParams(
+  featureMat,
+  responseVec,
+  standardize = TRUE,
+  alphaVals = seq(0.2, 1, length = 9),
+  lambdaVals = NULL,
+  nFolds = 10,
+  nRepeats = 10,
+  useLambdaMin = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{featureMat}{p x n matrix with input feature vectors along rows.}
@@ -19,11 +26,6 @@ linear combination of input feature vectors specified in featureMat.}
 \item{standardize}{Logical flag for feature variable standardization (across
 observations), passed in to glmnet functions (glmnet documentation: if
 variables are already in the same units, standardization may not be necessary).}
-
-\item{standardizeY}{Logical flag for response variable standardization across
-observations.}
-
-\item{fitIntercept}{Logical flag indicating whether intercept term should be fit.}
 
 \item{alphaVals}{a vector of alpha values to be optimized over}
 
@@ -38,6 +40,8 @@ assignments).}
 from cross-validation as the optimum lambda, if FALSE then the largest value 
 of lambda such that error is within 1 standard error of the minimum (lambda.1se)
 is used.}
+
+\item{verbose}{show debugging information}
 }
 \value{
 A list with the following elements:
@@ -55,6 +59,4 @@ A list with the following elements:
 Select the optimal elastic net parameters based on cross-validation
 error estimates.
 }
-\concept{
-rcellminerElasticNet
-}
+\concept{rcellminerElasticNet}

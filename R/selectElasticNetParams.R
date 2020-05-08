@@ -7,9 +7,6 @@
 #' @param standardize Logical flag for feature variable standardization (across
 #'   observations), passed in to glmnet functions (glmnet documentation: if
 #'   variables are already in the same units, standardization may not be necessary).
-#' @param standardizeY Logical flag for response variable standardization across
-#' observations.
-#' @param fitIntercept Logical flag indicating whether intercept term should be fit.
 #' @param alphaVals a vector of alpha values to be optimized over  
 #' @param lambdaVals a vector of lambda values to be optimized over
 #' @param nFolds The number of folds used in cross-validation.
@@ -19,6 +16,7 @@
 #'   from cross-validation as the optimum lambda, if FALSE then the largest value 
 #'   of lambda such that error is within 1 standard error of the minimum (lambda.1se)
 #'   is used.
+#' @param verbose show debugging information
 #' 
 #' @return A list with the following elements:
 #' \itemize{
@@ -34,19 +32,13 @@
 #' @concept rcellminerElasticNet
 #' @export
 #' 
-selectElasticNetParams <- function(featureMat, responseVec,
-                                   standardize=TRUE, standardizeY=FALSE, fitIntercept=TRUE,
+selectElasticNetParams <- function(featureMat, responseVec, standardize=TRUE,
                                    alphaVals=seq(0.2, 1, length=9), lambdaVals=NULL, 
                                    nFolds=10, nRepeats=10, useLambdaMin=TRUE, verbose=TRUE){
   if (is.null(lambdaVals)){
     # We run cv.glmnet() once to obtain a sequence of lambda values based on the data.
-    if (standardizeY){
-      glmnetY <- scale(responseVec)
-    } else{
-      glmnetY <- responseVec
-    }
-    lambdaVals <- cv.glmnet(x=t(featureMat), y=glmnetY,
-      nfolds=nFolds, standardize=standardize, intercept=fitIntercept)$lambda
+    lambdaVals <- cv.glmnet(x=t(featureMat), y=responseVec, nfolds=nFolds,
+                            standardize=standardize)$lambda
   } 
   cvFoldIds <- getCvFoldIds(nObs=ncol(featureMat), nFolds=nFolds, nRepeats=nRepeats)
   
@@ -61,9 +53,8 @@ selectElasticNetParams <- function(featureMat, responseVec,
     foldIds <- cvFoldIds[, k]
     for (i in seq_along(alphaVals)){
       alpha <- alphaVals[i]
-      cvResult <- cv.glmnet(x=t(featureMat), y=glmnetY,
-        alpha=alpha, lambda=lambdaVals, foldid=foldIds, 
-        standardize=standardize, intercept=fitIntercept)
+      cvResult <- cv.glmnet(x=t(featureMat), y=responseVec, alpha=alpha,
+                            lambda=lambdaVals, foldid=foldIds, standardize=standardize)
       cvmVec <- cvResult$cvm
       if (length(cvmVec) < length(lambdaVals)){
         # Handle instance in which glmnet does not consider full set of lambda

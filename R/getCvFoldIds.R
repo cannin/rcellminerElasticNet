@@ -4,7 +4,6 @@
 #' @param nFolds The number of folds used in cross-validation.
 #' @param nRepeats The number of cross-validation repeats (with different fold
 #'  assignments).
-#' @param id a optional string identifier for the EN run
 #' 
 #' @return An nObs x nReplicates matrix with integer fold identifiers along
 #'  the columns.

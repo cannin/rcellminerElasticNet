@@ -1,4 +1,9 @@
 #' xValFolds function taken from cvTools
+#' 
+#' @param n number of observations 
+#' @param K number of folds 
+#' @param R number of repeats 
+#' @param type type of fold selection
 #'
 #' @note This function is taken from the cvTools package.
 #'

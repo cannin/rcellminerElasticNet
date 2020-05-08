@@ -9,9 +9,6 @@
 #' @param standardize Logical flag for feature variable standardization (across
 #'   observations), passed in to glmnet functions (glmnet documentation: if
 #'   variables are already in the same units, standardization may not be necessary).
-#' @param standardizeY Logical flag for response variable standardization across
-#' observations.
-#' @param fitIntercept Logical flag indicating whether intercept term should be fit.
 #' @param alphaVals a vector of alpha values to be optimized over  
 #' @param lambdaVals a vector of lambda values to be optimized over
 #' @param nFoldsForParamSelection the number of cross-validation folds to perform
@@ -29,10 +26,12 @@
 #'   select smallest model (in terms of number of predictors) for which the estimated
 #'   error (by cross-validation) is within one standard error of the minimum estimated
 #'   error.
-#' @param obsFractionForModelSelection The fraction of the number of observations.
-#'   This is to limit the maximum possible number of predictors considered during 
+#' @param obsFractionForModelSelection The fraction of the number of observations
+#'   used to limit the maximum possible number of predictors considered during 
 #'   model selection (default = 0.75).
 #' @param id a optional string identifier for the EN run
+#' @param nCvRepeats The number of cross-validation repeats (with different fold
+#'  assignments).
 #' 
 #' @return a list with members: 
 #' \itemize{
@@ -40,13 +39,10 @@
 #'   \item{predictorSelectionFreq} {The selection frequency for the final set of predictors, i.e.,
 #'    the fraction of training set iterations in which the predictor was selected.}
 #'   \item{cvPredRsqVals} {A vector with the k-th entry indicating the square of the Pearson's
-#'    correlation coefficient between the actual response and the cross-validation predicted 
-#'    response with linear models based on the top k elastic net selected predictors 
-#'    (by coeff. weight magnitude).}
+#'    correlation coefficient between the actual response and the cross-validation}
 #'   \item{cvPredRVals} {A vector with the k-th entry indicating the Pearson's
 #'    correlation coefficient between the actual response and the cross-validation
-#'    predicted response with linear models based on the top k elastic net selected predictors 
-#'    (by coeff. weight magnitude).}
+#'    predicted response for a model based on the top k predictors (by coeff. weight magnitude).}
 #'   \item{cvMeanSqErrVals} {A vector with the k-th entry indicating the mean cross-validation error
 #'    estimate for a model based on the top k predictors (by coeff. weight magnitude).}
 #'   \item{cvSdMeanSqErrVals} {A vector with the k-th entry indicating the standard deviation of
@@ -62,11 +58,11 @@
 #'   \item{lambda} {the optimized lambda value used}
 #'   \item{foldIdsParamSelection} {The cross-validation fold IDs used during elastic net parameter 
 #'    selection.}
-#'   \item{foldIdsModelSelection} {The cross-validation fold IDs used during final model selection
+#'   \item{foldIdsParamSelection} {The cross-validation fold IDs used during final model selection
 #'    (selecting among models with different numbers of predictors).}
 #'   \item{cvm} {mean cross-validated errors for alpha values tried}
-#'   \item{featureWtMat} {A matrix with the feature weights for all features across all training 
-#'   runs (with each run based on a different random data subset).}
+#'   \item{featureWtMat} {a matrix with the feature weights for all features across all training 
+#'   runs (using random observation data subsets).}
 #' }
 #' 
 #' @author Vinodh Rajapakse 
@@ -75,8 +71,9 @@
 #' @export
 #' 
 #' @importFrom glmnet cv.glmnet glmnet
-elasticNet <- function(featureMat, responseVec,
-                       standardize=TRUE, standardizeY=FALSE, fitIntercept=TRUE,
+#' @importFrom utils setTxtProgressBar txtProgressBar 
+#' @importFrom stats quantile setNames cor.test predict 
+elasticNet <- function(featureMat, responseVec, standardize=TRUE,
                        alphaVals=seq(0.2, 1, length=9), lambdaVals=NULL, 
                        nFoldsForParamSelection=10, nCvRepeats=10,
                        nTrainingRuns=200, minFeatureFrequencyPctl=0.95,
@@ -90,7 +87,6 @@ elasticNet <- function(featureMat, responseVec,
   }
   
   optEnParams <- selectElasticNetParams(featureMat, responseVec, standardize=standardize,
-                                        standardizeY=standardizeY, fitIntercept=fitIntercept,
                                         alphaVals=alphaVals, lambdaVals=lambdaVals, 
                                         nFolds=nFoldsForParamSelection, nRepeats=nCvRepeats, 
                                         useLambdaMin=useLambdaMin, verbose=verbose)
@@ -124,13 +120,8 @@ elasticNet <- function(featureMat, responseVec,
     # NOTE: This is not bootstrapping; selection is not done with replacement 
     selector <- sample(x=(1:length(responseVec)), size=trainingSetSize, replace=FALSE)
     
-    if (standardizeY){
-      glmnetY <- scale(responseVec[selector])
-    } else{
-      glmnetY <- responseVec[selector]
-    }
-    glmnetOutput <- glmnet(x=t(featureMat)[selector, ], y=glmnetY,
-      standardize=standardize, intercept=fitIntercept, alpha=optAlpha, lambda=lambdaVals)
+    glmnetOutput <- glmnet(x=t(featureMat)[selector, ], y=responseVec[selector], 
+                           standardize=standardize, alpha=optAlpha, lambda=lambdaVals)
     betaAsMat <- predict(glmnetOutput, type="coef", s=optLambda)
     featureWtMat[, j] <- as.numeric(betaAsMat)
     
@@ -195,7 +186,7 @@ elasticNet <- function(featureMat, responseVec,
   cvMeanSqErrVals <- setNames(rep(NA, nPredictors), predictorSet)
   cvSdMeanSqErrVals <- setNames(rep(NA, nPredictors), predictorSet)
   
-  cvFoldIds <- getCvFoldIds(nObs=ncol(featureMat), nFolds=nFoldsForParamSelection, 
+  cvFoldIds <- rcellminerElasticNet::getCvFoldIds(nObs=ncol(featureMat), nFolds=nFoldsForParamSelection, 
                             nRepeats=nCvRepeats)
   
   maxModelSelectionPredictors <- min(nPredictors, 
@@ -203,7 +194,7 @@ elasticNet <- function(featureMat, responseVec,
 
   for (i in seq_len(maxModelSelectionPredictors)){
     
-    lmCvFit <- tryCatch(getLmCvFit(X=t(featureMat[predictorSet[1:i], , drop=FALSE]), y=responseVec, 
+    lmCvFit <- tryCatch(rcellminerElasticNet::getLmCvFit(X=t(featureMat[predictorSet[1:i], , drop=FALSE]), y=responseVec, 
                           nFolds=nFoldsForParamSelection, nRepeats=nCvRepeats, cvFoldIds=cvFoldIds),
                         error = function(x) { return(NULL) },
                         warning = function(x) { return(NULL) })
@@ -265,7 +256,7 @@ elasticNet <- function(featureMat, responseVec,
   colnames(output$predictedResponse) <- as.character(1:updatedCumCorNumPredictors)
   
   for (n in (1:updatedCumCorNumPredictors)){
-    output$predictedResponse[, as.character(n)] <- predictWithLinRegModel(
+    output$predictedResponse[, as.character(n)] <- rcellminerElasticNet::predictWithLinRegModel(
       coeffVec = output$predictorWts[1:n], 
       yIntercept = output$yIntercept,
       newData = featureMat)

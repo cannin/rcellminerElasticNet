@@ -4,8 +4,16 @@
 \alias{xValFolds}
 \title{xValFolds function taken from cvTools}
 \usage{
-xValFolds(n, K = 5, R = 1, type = c("random", "consecutive",
-  "interleaved"))
+xValFolds(n, K = 5, R = 1, type = c("random", "consecutive", "interleaved"))
+}
+\arguments{
+\item{n}{number of observations}
+
+\item{K}{number of folds}
+
+\item{R}{number of repeats}
+
+\item{type}{type of fold selection}
 }
 \description{
 xValFolds function taken from cvTools
@@ -13,6 +21,4 @@ xValFolds function taken from cvTools
 \note{
 This function is taken from the cvTools package.
 }
-\concept{
-rcellminerElasticNet
-}
+\concept{rcellminerElasticNet}

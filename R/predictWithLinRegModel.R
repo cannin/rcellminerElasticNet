@@ -15,6 +15,8 @@
 #'  
 #' @concept rcellminerElasticNet
 #' @export
+#' 
+#' @importFrom stats setNames 
 predictWithLinRegModel <- function(model=NULL, useModelYIntercept, coeffVec=NULL, 
                                    yIntercept=0, newData){
   if (is.null(model) && is.null(coeffVec)){

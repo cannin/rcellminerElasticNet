@@ -28,6 +28,8 @@
 #' 
 #' @concept rcellminerElasticNet
 #' @export
+#' 
+#' @importFrom stats lm predict
 getLmCvFit <- function(X, y, nFolds=10, nRepeats=10, cvFoldIds=NULL){
   if (is.null(cvFoldIds)){
     cvFoldIds <- getCvFoldIds(nObs=nrow(X), nFolds=nFolds, nRepeats=nRepeats)

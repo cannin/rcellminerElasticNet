@@ -13,8 +13,6 @@ getCvFoldIds(nObs, nFolds = 10, nRepeats = 10)
 
 \item{nRepeats}{The number of cross-validation repeats (with different fold
 assignments).}
-
-\item{id}{a optional string identifier for the EN run}
 }
 \value{
 An nObs x nReplicates matrix with integer fold identifiers along
@@ -23,6 +21,4 @@ An nObs x nReplicates matrix with integer fold identifiers along
 \description{
 Return a matrix of fold assignments for use in cross-validation.
 }
-\concept{
-rcellminerElasticNet
-}
+\concept{rcellminerElasticNet}

@@ -4,25 +4,39 @@
 \alias{plotElasticNet}
 \title{Plot elastic net results}
 \usage{
-plotElasticNet(drugName, weights, drugAct, molDb, numCellLines,
-  numFeatures = 10, featureAnnotations = NULL, showCellLineLabels = TRUE,
-  pdfFilename = NULL, thresholdValues = FALSE, isMutBin = TRUE,
-  axisScaling = NULL, topMarWt = 4, bottomMarWt = 2.75,
-  leftMarHeatmap = 5, pdfWidth = 10, responseLabel = "Drug Activity",
-  verbose = TRUE)
+plotElasticNet(
+  responseName,
+  weights,
+  responseMat,
+  molDb,
+  numCellLines,
+  numFeatures = 10,
+  featureAnnotations = NULL,
+  showCellLineLabels = TRUE,
+  pdfFilename = NULL,
+  thresholdValues = FALSE,
+  isMutBin = TRUE,
+  axisScaling = NULL,
+  topMarWt = 4,
+  bottomMarWt = 2.75,
+  leftMarHeatmap = 5,
+  pdfWidth = 10,
+  responseLabel = "Drug Activity",
+  verbose = TRUE
+)
 }
 \arguments{
-\item{drugName}{a string with the name of drug}
+\item{responseName}{a string with the name of response variable}
 
 \item{weights}{a named vector of values with the elastic net weights for a set of features}
 
-\item{drugAct}{a matrix of drug activity values, a value for each drug tested for each cell line}
+\item{responseMat}{a matrix of response variable values, a value for each response tested for each cell line}
 
 \item{molDb}{a list of matrix of supported data types. The list must use the following prefixes: 
 exp: gene expression, mir: miRNA, mut: mutations, pro: protein, mda: metadata, 
 cop: copy number variations}
 
-\item{numCellLines}{an integer of the number of cell lines to be plotted. This function will take the top (by drug activity)
+\item{numCellLines}{an integer of the number of cell lines to be plotted. This function will take the top (by response variable)
 numCellLines/2 and the bottom numCellLines/2 for plotting}
 
 \item{numFeatures}{an integer of the number of features to be plotted; default 10}
@@ -44,7 +58,7 @@ default will be used depending on if the there annotations}
 
 \item{bottomMarWt}{a user selected top margin for the the feature weights (default: 2.75)}
 
-\item{leftMarHeatmap}{the left margin for the the heatmap and drug activity; 
+\item{leftMarHeatmap}{the left margin for the the heatmap and response variable; 
 can be increased to handle longer labels (default: 5)}
 
 \item{pdfWidth}{the width of the PDF (default: 10)}
@@ -54,7 +68,7 @@ can be increased to handle longer labels (default: 5)}
 \item{verbose}{a boolean, whether to display debugging information}
 }
 \value{
-if verbose is TRUE then a list with the plotted drug activity values, heatmap values, and 
+if verbose is TRUE then a list with the plotted response variable values, heatmap values, and 
   cell line order will be returned
 
 plotElasticNet does not return values; a plot is produced
@@ -79,6 +93,4 @@ GDSC Website: http://www.cancerrxgene.org/help/
 \author{
 Augustin Luna
 }
-\concept{
-rcellminerElasticNet
-}
+\concept{rcellminerElasticNet}

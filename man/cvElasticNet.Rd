@@ -5,14 +5,27 @@
 \title{Cross validate the entire elastic net procedure to obtain a set of predicted
 response values for strictly held out data.}
 \usage{
-cvElasticNet(nFolds = 10, nRepeats = 10, cvFoldIds = NULL,
-  minFeatureResponseAbsCor = 0, featureMat, responseVec, standardize = TRUE,
-  standardizeY = FALSE, fitIntercept = TRUE, alphaVals = seq(0.2, 1,
-  length = 9), lambdaVals = NULL, nFoldsForParamSelection = 10,
-  nCvRepeats = 10, nTrainingRuns = 200, minFeatureFrequencyPctl = 0.95,
-  cumCorNumPredictors = 10, useLambdaMin = TRUE, useOneStdErrRule = FALSE,
-  id = "", keepEnResults = FALSE, useModelYIntercept = FALSE,
-  verbose = TRUE)
+cvElasticNet(
+  nFolds = 10,
+  nRepeats = 10,
+  cvFoldIds = NULL,
+  featureMat,
+  responseVec,
+  standardize = TRUE,
+  alphaVals = seq(0.2, 1, length = 9),
+  lambdaVals = NULL,
+  nFoldsForParamSelection = 10,
+  nCvRepeats = 10,
+  nTrainingRuns = 200,
+  minFeatureFrequencyPctl = 0.95,
+  cumCorNumPredictors = 10,
+  useLambdaMin = TRUE,
+  useOneStdErrRule = FALSE,
+  id = "",
+  keepEnResults = FALSE,
+  useModelYIntercept = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{nFolds}{The number of folds used in cross-validation.}
@@ -23,9 +36,6 @@ assignments).}
 \item{cvFoldIds}{An nObs x nReplicates matrix with integer fold identifiers 
 along the columns.}
 
-\item{minFeatureResponseAbsCor}{Minimum absolute correlation between feature
-and response (used to filter rows of featureMat).}
-
 \item{featureMat}{p x n matrix with input feature vectors along rows.}
 
 \item{responseVec}{n-dimensional response vector to be predicted using a sparse
@@ -35,16 +45,14 @@ linear combination of input feature vectors specified in featureMat.}
 observations), passed in to glmnet functions (glmnet documentation: if
 variables are already in the same units, standardization may not be necessary).}
 
-\item{standardizeY}{Logical flag for response variable standardization across
-observations.}
-
-\item{fitIntercept}{Logical flag indicating whether intercept term should be fit.}
-
 \item{alphaVals}{a vector of alpha values to be optimized over}
 
 \item{lambdaVals}{a vector of lambda values to be optimized over}
 
 \item{nFoldsForParamSelection}{the number of cross-validation folds to perform}
+
+\item{nCvRepeats}{The number of cross-validation repeats (with different fold
+assignments).}
 
 \item{nTrainingRuns}{number of training runs to perform}
 
@@ -65,6 +73,8 @@ error (by cross-validation) is within one standard error of the minimum estimate
 error.}
 
 \item{id}{a optional string identifier for the EN run}
+
+\item{keepEnResults}{Keep individual elastic net run feature weight matricies}
 
 \item{useModelYIntercept}{A logical value indicating if the model intercept term
 should be used for prediction of response values held out in each CV fold.}
@@ -103,6 +113,4 @@ A list with the following elements
 Cross validate the entire elastic net procedure to obtain a set of predicted
 response values for strictly held out data.
 }
-\concept{
-rcellminerElasticNet
-}
+\concept{rcellminerElasticNet}

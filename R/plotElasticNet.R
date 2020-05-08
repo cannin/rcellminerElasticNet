@@ -2,13 +2,13 @@
 #' 
 #' Creates a plot for elastic net results similar to the GDSC plots (http://www.cancerrxgene.org/help/)
 #' 
-#' @param drugName a string with the name of drug
+#' @param responseName a string with the name of response variable
 #' @param weights a named vector of values with the elastic net weights for a set of features
-#' @param drugAct a matrix of drug activity values, a value for each drug tested for each cell line
+#' @param responseMat a matrix of response variable values, a value for each response tested for each cell line
 #' @param molDb a list of matrix of supported data types. The list must use the following prefixes: 
 #'   exp: gene expression, mir: miRNA, mut: mutations, pro: protein, mda: metadata, 
 #'   cop: copy number variations
-#' @param numCellLines an integer of the number of cell lines to be plotted. This function will take the top (by drug activity)
+#' @param numCellLines an integer of the number of cell lines to be plotted. This function will take the top (by response variable)
 #'     numCellLines/2 and the bottom numCellLines/2 for plotting
 #' @param numFeatures an integer of the number of features to be plotted; default 10
 #' @param featureAnnotations a vector of optional annotations that will be appended to feature names in parentheses
@@ -20,13 +20,13 @@
 #'   default will be used depending on if the there annotations
 #' @param bottomMarWt a user selected top margin for the the feature weights (default: 2.75)
 #' @param topMarWt a user selected top margin for the the feature weights (default: 4)
-#' @param leftMarHeatmap the left margin for the the heatmap and drug activity; 
+#' @param leftMarHeatmap the left margin for the the heatmap and response variable; 
 #'   can be increased to handle longer labels (default: 5)
 #' @param pdfWidth the width of the PDF (default: 10)
 #' @param responseLabel a string describing the response vector (default: "Drug Activity")
 #' @param verbose a boolean, whether to display debugging information
 #' 
-#' @return if verbose is TRUE then a list with the plotted drug activity values, heatmap values, and 
+#' @return if verbose is TRUE then a list with the plotted response variable values, heatmap values, and 
 #'   cell line order will be returned 
 #' 
 #' @details This function uses layout() and may conflict if embedded in other plots using layout().
@@ -46,8 +46,7 @@
 #' @export
 #' 
 #' @importFrom gplots barplot2
-#' @importFrom gdata startsWith
-plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numFeatures=10, 
+plotElasticNet <- function(responseName, weights, responseMat, molDb, numCellLines, numFeatures=10, 
                            featureAnnotations=NULL, showCellLineLabels=TRUE, 
                            pdfFilename=NULL, thresholdValues=FALSE, isMutBin=TRUE, 
                            axisScaling=NULL, topMarWt=4, bottomMarWt=2.75, 
@@ -56,8 +55,8 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   # FIXME: Force R to not show scientific notation in axis
   options("scipen"=0)
   
-  if (is.data.frame(drugAct)){
-    drugAct <- as.matrix(drugAct)
+  if (is.data.frame(responseMat)){
+    responseMat <- as.matrix(responseMat)
   }
   
   ### START TESTING PARAMETERS
@@ -65,9 +64,9 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   #numFeatures <- 10 
   # Reverse so that the highest weighted feature appears at top of diagram
   #weights <- rev(testFea[1:numFeatures])
-  #drugName <- "PD-0325901"
+  #responseName <- "PD-0325901"
   #mutFea <- binMutCCLE, 
-  #drugAct <- drugActCCLE, 
+  #responseMat <- drugActCCLE, 
   #genExp <- genExpCCLE
   ### END TESTING PARAMETERS
   
@@ -75,11 +74,11 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   # 	numCellLines <- 60
   # 	numFeatures <- 5 
   # 	weights <- elNetResults$nonzeroFeatureWts[1:5]
-  # 	drugName <- "609699"
+  # 	responseName <- "609699"
   # 	mutFea <- molDB$mut
   # 	newNames <- as.vector(sapply(rownames(mutFea), function(x) {paste("mut", x, sep="")}))
   #     rownames(mutFea) <- newNames    
-  # 	drugAct <- drugActNCI60 
+  # 	responseMat <- drugActNCI60 
   # 	
   # 	genExp <- molDB$exp
   # 	newNames <- as.vector(sapply(rownames(genExp), function(x) {paste("exp", x, sep="")}))
@@ -149,18 +148,18 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
     mutRows <- NULL
   }
   
-  # Get values from the drug activity data -------------------------------------
+  # Get values from the response variable data -------------------------------------
   # Account for odd numbers of cell lines
   if(numCellLines %% 2 == 0) {
-    topCellLinesValues <- sort(drugAct[drugName, ], decreasing=TRUE)[1:(numCellLines/2)]    
-    topCellLinesNames <- names(sort(drugAct[drugName, ], decreasing=TRUE)[1:(numCellLines/2)])
+    topCellLinesValues <- sort(responseMat[responseName, ], decreasing=TRUE)[1:(numCellLines/2)]    
+    topCellLinesNames <- names(sort(responseMat[responseName, ], decreasing=TRUE)[1:(numCellLines/2)])
   } else {
-    topCellLinesValues <- sort(drugAct[drugName, ], decreasing=TRUE)[1:((numCellLines/2)+1)]  
-    topCellLinesNames <- names(sort(drugAct[drugName, ], decreasing=TRUE)[1:((numCellLines/2)+1)])
+    topCellLinesValues <- sort(responseMat[responseName, ], decreasing=TRUE)[1:((numCellLines/2)+1)]  
+    topCellLinesNames <- names(sort(responseMat[responseName, ], decreasing=TRUE)[1:((numCellLines/2)+1)])
   }
 
-  bottomCellLinesValues <- rev(sort(drugAct[drugName, ], decreasing=FALSE)[1:(numCellLines/2)])
-  bottomCellLinesNames <- rev(names(sort(drugAct[drugName, ], decreasing=FALSE)[1:(numCellLines/2)]))
+  bottomCellLinesValues <- rev(sort(responseMat[responseName, ], decreasing=FALSE)[1:(numCellLines/2)])
+  bottomCellLinesNames <- rev(names(sort(responseMat[responseName, ], decreasing=FALSE)[1:(numCellLines/2)]))
   
   maxCellLineValue <- round(max(topCellLinesValues), 2) 
   minCellLineValue <- round(min(bottomCellLinesValues), 2)
@@ -168,10 +167,10 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   
   cellLineOrder <- c(topCellLinesNames, bottomCellLinesNames)
   
-  # Initialize drug activity and expression data
+  # Initialize response variable and expression data
   heatMapValues <- matrix(NA, ncol=numCellLines, nrow=numFeatures)
   # The unione of the top and bottom cell lines may not always equal all the cell lines togethers
-  drugActValues <- drugAct[drugName, cellLineOrder]	
+  responseValues <- responseMat[responseName, cellLineOrder]	
   
   if(verbose) {
     str(topCellLinesNames)
@@ -186,42 +185,42 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   nonMutFea <- NULL
   
   for(feature in names(weights)) {
-    if(startsWith(feature, "mut")) {
+    if(grepl("^mut.+", feature)) {
       if(verbose) cat("Mut0: ", feature, "\n")
       heatMapValues[cnt,] <- mutFea[feature, cellLineOrder]
     }
     
-    if(startsWith(feature, "exp")) {      
+    if(grepl("^exp.+", feature)) {      
       tmp <- genExp[feature, cellLineOrder]
       
-      if(verbose) cat("GeneExp: NCol: ", length(tmp), " NRow: ", nrow(tmp), "\n")
+      if(verbose) cat("geneExp: Fea: ", feature, " NCol: ", length(tmp), " NRow: ", nrow(tmp), "\n")
       
       heatMapValues[cnt,] <- genExp[feature, cellLineOrder]
       nonMutFea <- c(nonMutFea, cnt)
     }
     
-    if(startsWith(feature, "cop")) {
+    if(grepl("^cop.+", feature)) {
       heatMapValues[cnt,] <- copNum[feature, cellLineOrder]
       nonMutFea <- c(nonMutFea, cnt)
     }
     
-    if(startsWith(feature, "mir")) {
+    if(grepl("^mir.+", feature)) {
       heatMapValues[cnt,] <- mirExp[feature, cellLineOrder]
       nonMutFea <- c(nonMutFea, cnt)
     }
 
-  	if(startsWith(feature, "pro")) {
+  	if(grepl("^pro.+", feature)) {
   		heatMapValues[cnt,] <- proVal[feature, cellLineOrder]
   		nonMutFea <- c(nonMutFea, cnt)
   	}
   	
-    if(startsWith(feature, "swa")) {
+    if(grepl("^swa.+", feature)) {
       # Scale values before displaying 
       heatMapValues[cnt,] <- scale(swaVal[feature, cellLineOrder])
       nonMutFea <- c(nonMutFea, cnt)
     }
     
-  	if(startsWith(feature, "mda")) {
+  	if(grepl("^mda.+", feature)) {
   		heatMapValues[cnt,] <- mdaVal[feature, cellLineOrder]
   		nonMutFea <- c(nonMutFea, cnt)
   	}
@@ -268,7 +267,7 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
       cat("Fea0: ", feature, "\n")
     }
     
-    if(isMutBin && startsWith(feature, "mut")) {
+    if(isMutBin && grepl("^mut.+", feature)) {
       if(verbose) {
         cat("Mut: ", feature, 
             " Max: ", maxHeatMapValues, 
@@ -329,7 +328,7 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   }
   
   heatmap.colors <- colorRampPalette(c("blue", "white", "red"))
-  drugact.colors <- colorRampPalette(c("cyan", "white", "magenta"))
+  responseMat.colors <- colorRampPalette(c("cyan", "white", "magenta"))
   
   ### Heatmap
   #par(mar=c(3,5,4,1))
@@ -338,7 +337,7 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   #labels <- rep("XXXXX_MUT", 10)
   
   image(t(heatMapValues), col=heatmap.colors(12), axes=FALSE)
-  title(main=paste("Drug Compound: ", drugName, sep="")) 
+  title(main=paste("Response Variable: ", responseName, sep="")) 
   
   labels <- names(weights[1:numFeatures])
   
@@ -366,8 +365,8 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   #mat <- matrix(sample(-10:10, numCellLines, replace=T), ncol=numCellLines)
   #labels <- rep("CELLLINE_A", 20)
   
-  # NOTE: If the drug data is not transposed properly the drug activity bar may look odd.
-  image(as.matrix(drugActValues), col=drugact.colors(12), axes=FALSE)
+  # NOTE: If the response data is not transposed properly the response variable bar may look odd.
+  image(as.matrix(responseValues), col=responseMat.colors(12), axes=FALSE)
   axis(2, at=0.1, labels=responseLabel, cex.axis=0.75) 
   
   if(showCellLineLabels) {
@@ -402,11 +401,11 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   axis(2, at=seq(0,1,1/2), labels=c(minHeatMapValues,midHeatMapValues,maxHeatMapValues), cex.axis=0.75)
   mtext(side=1, text="Values", line=1, cex=0.75)
   
-  ### Scale bar / GI50
+  ### Scale bar / GI50 or response
   par(las=1, mar=c(4,2,1,2))
   #mat <- matrix(sample(-10:10, 20, replace=T), ncol=1)
   
-  image(t(seq(0,1,1/(scaleBarSize-1))), col=drugact.colors(scaleBarSize), axes=FALSE)
+  image(t(seq(0,1,1/(scaleBarSize-1))), col=responseMat.colors(scaleBarSize), axes=FALSE)
   axis(2, at=seq(0,1,1/2), labels=c(minCellLineValue,midCellLineValue,maxCellLineValue), cex.axis=0.75)
   mtext(side=1, text=responseLabel, line=1, cex=0.75)
   
@@ -415,7 +414,7 @@ plotElasticNet <- function(drugName, weights, drugAct, molDb, numCellLines, numF
   }
   
   if(verbose) {
-    enPlotValues <- list(drugActValues=drugActValues, heatMapValues=t(heatMapValues), 
+    enPlotValues <- list(responseValues=responseValues, heatMapValues=t(heatMapValues), 
                          cellLineOrder=cellLineOrder)
     return(enPlotValues)
   }
