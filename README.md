@@ -1,3 +1,11 @@
+# Description 
+
+A collection of R functions that make use of the glmnet Elastic Net implementation.
+
+# Usage 
+
+See tests directory for example
+
 # Install 
 ```
     if (!"devtools" %in% installed.packages()) install.packages("devtools")
