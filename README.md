@@ -4,7 +4,8 @@ A collection of R functions that make use of the glmnet Elastic Net implementati
 
 # Usage 
 
-See tests directory for example
+See tests directory for example:
+https://github.com/cannin/rcellminerElasticNet/blob/master/tests/testthat/test_rcellminerElasticNet.R
 
 # Install 
 ```
